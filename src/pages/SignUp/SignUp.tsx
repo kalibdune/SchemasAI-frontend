@@ -108,7 +108,7 @@ export default function SignUp() {
                                 required
                             />
                             {errors.password?._errors && (
-                                <span>{errors.password._errors[0]}</span>
+                                <span className="accent-red-500">{errors.password._errors[0]}</span>
                             )}
                         </label>
                         <label>

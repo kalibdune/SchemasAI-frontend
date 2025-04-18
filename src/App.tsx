@@ -1,11 +1,11 @@
 import './App.css'
-import SignUp from "./pages/SignUp/SignUp.tsx";
+import LogIn from "./pages/LogIn/LogIn.tsx";
 
 function App() {
 
   return (
-    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
-        <SignUp/>
+    <div className="flex justify-center items-center h-screen">
+        <LogIn/>
     </div>
   )
 }
