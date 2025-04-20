@@ -1,0 +1,45 @@
+.ai-message {
+  display: flex;
+  text-align: start;
+  align-self: start;
+  max-width: 640px;
+  white-space: wrap;
+  border-radius: 20px;
+  padding: 8px 16px;
+  flex-direction: column;
+  color: rgba(255, 255, 255, 0.85);
+
+  code {
+    padding: 0.5em 0.4em;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-family: "Fira Code", monospace;
+  }
+
+  .code-block-wrapper {
+    position: relative;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    margin-top: 1em;
+  }
+
+  .copy-button {
+    position: absolute;
+    top: 1rem;
+    right: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 10;
+  }
+
+  .copied-label {
+    font-size: 0.75rem;
+    color: #ffffff;
+  }
+}

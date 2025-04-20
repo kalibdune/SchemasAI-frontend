@@ -1,8 +1,6 @@
 import axios, { AxiosInstance } from 'axios'
 import { BASE_URL } from './constants'
 import {
-    UrlCreateRequest,
-    UrlResponse,
     UserCreateRequest,
     UserResponse,
 } from '../types/authTypes.ts'

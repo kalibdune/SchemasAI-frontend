@@ -1,0 +1,11 @@
+.user-message {
+  display: flex;
+  text-align: start;
+  align-self: end;
+  max-width: 640px;
+  white-space: wrap;
+  border-radius: 20px;
+  background-color: #141414;
+  padding: 8px 16px;
+  color: rgba(255, 255, 255, 0.85);
+}
