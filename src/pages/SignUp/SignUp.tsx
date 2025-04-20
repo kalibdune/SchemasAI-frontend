@@ -1,4 +1,3 @@
-import "./SignUp.scss"
 import FormSignUp from "../../components/FormSignUp/FormSignUp.tsx";
 
 export default function SignUp() {
