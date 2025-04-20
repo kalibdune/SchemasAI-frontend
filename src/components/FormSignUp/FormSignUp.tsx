@@ -16,29 +16,39 @@ type FieldType = {
 
 export default function FormSignUp() {
     const [form] = useForm<FieldType>();
-    const navigate = useNavigate(); // хук для редиректа
+    const navigate = useNavigate();
 
     const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
         const { confirmPassword, ...dataToSubmit } = values;
         try {
-            const response = await api.createUser(dataToSubmit);
-            if (response) {
-                // Если регистрация успешна, код 201, редиректим на главную страницу
-                message.success("Пользователь успешно зарегистрирован!");
-                navigate("/chat"); // Редирект на главную страницу
-            }
-        } catch (error: any) {
+            // 1. Регистрация пользователя
+            await api.register(dataToSubmit);
+
+            // 2. Автоматический вход после успешной регистрации
+            await api.login(dataToSubmit.email, dataToSubmit.password);
+
+            // 3. Редирект на защищенную страницу
+            message.success("Регистрация прошла успешно!");
+            navigate("/chat");
+        } catch (error: unknown) {
             if (axios.isAxiosError(error)) {
-                if (error.response?.status === 409) {
-                    // Если ошибка с кодом 409, выводим сообщение, что почта существует
-                    message.error("Почта уже существует!");
-                } else {
-                    // Для всех остальных ошибок выводим общий error
-                    message.error("Ошибка регистрации. Попробуйте снова.");
+                // Обработка ошибок валидации
+                if (error.response?.status === 422) {
+                    const details = error.response.data.detail;
+                    const emailError = details.find((d: any) => d.loc.includes('email'));
+                    if (emailError) {
+                        form.setFields([{
+                            name: 'email',
+                            errors: [emailError.msg]
+                        }]);
+                        return;
+                    }
                 }
+
+                // Общая обработка ошибок
+                message.error(error.response?.data?.detail || "Ошибка регистрации");
             } else {
-                // В случае других ошибок, не связанных с axios
-                message.error("Неизвестная ошибка. Попробуйте снова.");
+                message.error("Неизвестная ошибка");
             }
         }
     };
@@ -57,37 +67,42 @@ export default function FormSignUp() {
                 >
                     <Form.Item<FieldType>
                         name="name"
+                        label="Имя"
                         rules={[
                             { required: true, message: "Введите имя" },
                             { min: 3, message: "Минимум 3 символа" },
                             { max: 20, message: "Максимум 20 символов" },
                         ]}
                     >
-                        <Input size="large" placeholder="Логин" />
+                        <Input size="large" placeholder="Ваше имя" />
                     </Form.Item>
 
                     <Form.Item<FieldType>
                         name="email"
+                        label="Почта"
                         rules={[
                             { required: true, message: "Введите почту" },
-                            { type: "email", message: "Некорректный формат почты" },
+                            { type: "email", message: "Некорректный формат" },
                         ]}
                     >
-                        <Input size="large" placeholder="Почта" />
+                        <Input size="large" placeholder="example@mail.com" />
                     </Form.Item>
 
                     <Form.Item<FieldType>
                         name="password"
+                        label="Пароль"
                         rules={[
                             { required: true, message: "Введите пароль" },
-                            { min: 6, message: "Пароль должен быть не менее 6 символов" },
+                            { min: 6, message: "Минимум 6 символов" },
                         ]}
                     >
-                        <Input.Password size="large" placeholder="Пароль" />
+                        <Input.Password size="large" placeholder="••••••" />
                     </Form.Item>
+
 
                     <Form.Item<FieldType>
                         name="confirmPassword"
+                        label="Подтверждение пароля"
                         dependencies={["password"]}
                         rules={[
                             { required: true, message: "Повторите пароль" },
@@ -101,25 +116,24 @@ export default function FormSignUp() {
                             }),
                         ]}
                     >
-                        <Input.Password size="large" placeholder="Повторите пароль" />
+                        <Input.Password size="large" placeholder="••••••" />
                     </Form.Item>
-                </Form>
 
-                <div className="flex justify-end">
-                    <Button size="small" type="link">
-                        <Link to="/login">Уже есть аккаунт? Войти</Link>
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        block
+                        size="large"
+                    >
+                        Зарегистрироваться
                     </Button>
-                </div>
 
-                <Button
-                    type="primary"
-                    htmlType="submit"
-                    form="form-registration"
-                    className="flex items-center"
-                    block
-                >
-                    Зарегистрироваться
-                </Button>
+                    <div className="mt-4 text-center">
+                        <Link to="/login">
+                            Уже есть аккаунт? <span className="text-primary">Войти</span>
+                        </Link>
+                    </div>
+                </Form>
             </FormStyle>
         </div>
     );
