@@ -33,41 +33,6 @@ export class ApiService {
                 } as T
             }
 
-            if (endpoint.startsWith('/api/url/') && method === 'POST') {
-                return {
-                    id: 'mock-url-id',
-                    original_url: data.original_url,
-                    short_url: 'http://sho.rt/abc123',
-                    user: data.user ?? 'mock-user-id',
-                } as T
-            }
-
-            if (endpoint.startsWith('/api/url/user/') && method === 'GET') {
-                return [
-                    {
-                        id: 'mock-url-1',
-                        original_url: 'https://example.com/1',
-                        short_url: 'http://sho.rt/abc1',
-                        user: 'mock-user-id',
-                    },
-                    {
-                        id: 'mock-url-2',
-                        original_url: 'https://example.com/2',
-                        short_url: 'http://sho.rt/abc2',
-                        user: 'mock-user-id',
-                    },
-                ] as T
-            }
-
-            if (endpoint.startsWith('/api/url/') && method === 'GET') {
-                return {
-                    id: 'mock-url-id',
-                    original_url: 'https://example.com',
-                    short_url: 'http://sho.rt/abc123',
-                    user: 'mock-user-id',
-                } as T
-            }
-
             if (endpoint === '/api/token/' && method === 'POST') {
                 return {
                     id: 'mock-user-id',
@@ -125,32 +90,6 @@ export class ApiService {
             console.error('unexpected error', error)
             throw new Error('An unexpected error occurred')
         }
-    }
-
-    async createShortUrl(payload: UrlCreateRequest): Promise<UrlResponse> {
-        return this.request<UrlResponse>('/api/url/', 'POST', payload)
-    }
-
-    async getUrlsByUser(
-        userId: string,
-        page: number = 1,
-        size: number = 10
-    ): Promise<UrlResponse[]> {
-        return this.request<UrlResponse[]>(
-            `/api/url/user/${userId}/?page=${page}&size=${size}`,
-            'GET'
-        )
-    }
-
-    async updateUrl(
-        id: string,
-        payload: Partial<UrlCreateRequest>
-    ): Promise<UrlResponse> {
-        return this.request<UrlResponse>(`/api/url/${id}/`, 'PATCH', payload)
-    }
-
-    async getUrlByHash(hash: string): Promise<UrlResponse> {
-        return this.request<UrlResponse>(`/api/url/${hash}/`, 'GET')
     }
 
     async createUser(payload: UserCreateRequest): Promise<UserResponse> {

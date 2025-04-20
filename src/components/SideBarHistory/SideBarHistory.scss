@@ -1,0 +1,18 @@
+.sidebar-history {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  height: 75vh;
+}
+
+.sidebar-history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+.sidebar-history-item:hover {
+  background-color: #1F1F1F;
+  border-radius: 5px;
+}

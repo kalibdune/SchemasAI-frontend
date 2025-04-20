@@ -7,6 +7,7 @@
 html, body {
     height: 100%;
     font-family: sans-serif;
+    color: #ffffff;
 }
 
 a {
@@ -28,4 +29,8 @@ button, input, textarea {
 img {
     display: block;
     max-width: 100%;
+}
+
+.ant-form-item {
+    margin-bottom: 24px !important;
 }
