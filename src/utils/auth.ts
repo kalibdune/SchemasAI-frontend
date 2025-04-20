@@ -49,14 +49,26 @@ export class ApiService {
     private async refreshToken(): Promise<string> {
         try {
             const refreshToken = Cookies.get('refresh_token');
-            const response = await axios.post<{ access_token: string }>(
+            if (!refreshToken) throw new Error('No refresh token');
+
+            // Исправляем запрос согласно спецификации API
+            const formData = new URLSearchParams();
+            formData.append('refresh_token', refreshToken);
+
+            const response = await axios.post<string>(
                 `${VITE_BASE_URL}/api/token/refresh/`,
-                { refresh_token: refreshToken },
-                { headers: { 'Content-Type': 'application/json' } }
+                formData,
+                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
             );
 
-            Cookies.set('access_token', response.data.access_token, { expires: 1 });
-            return response.data.access_token;
+            const newAccessToken = response.data;
+            Cookies.set('access_token', newAccessToken, {
+                expires: 1,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict'
+            });
+
+            return newAccessToken;
         } catch (error) {
             this.handleAuthError();
             throw error;
@@ -131,7 +143,9 @@ export class ApiService {
 
     async logout(): Promise<void> {
         try {
-            await this.request('POST', '/api/token/logout/');
+            await this.request('DELETE', '/api/token/logout/');
+        } catch (error) {
+            console.error('Logout error:', error);
         } finally {
             Cookies.remove('access_token');
             Cookies.remove('refresh_token');

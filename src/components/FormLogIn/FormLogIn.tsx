@@ -2,7 +2,7 @@ import { Button, Form, Input, type FormProps } from "antd";
 import { useForm } from "antd/es/form/Form";
 import FormStyle from "../FormStyles/FormStyle.tsx";
 import { ApiService } from "../../utils/auth.ts";
-import { useNavigate } from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 
 
 const api = new ApiService();
@@ -74,6 +74,11 @@ export default function FormLogIn() {
                 >
                     Войти
                 </Button>
+                <div className="mt-4 text-center">
+                    <Link to="/signup">
+                        Нет аккаунта? <span className="text-primary">Зарегистрироваться</span>
+                    </Link>
+                </div>
             </FormStyle>
         </div>
     );

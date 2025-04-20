@@ -15,7 +15,7 @@ export default function MessageList({ messages }: MessageListProps) {
     }, [messages]);
 
     return (
-        <div className="w-full flex flex-col gap-4 p-4 overflow-y-auto" style={{paddingTop: "200px", minWidth: "900px"}}>
+        <div className="w-full flex flex-col gap-4 p-4 overflow-y-auto" style={{paddingTop: "100px", minWidth: "900px"}}>
             {messages.map((msg) =>
                 msg.sender_type === "user" ? (
                     <UserMessage key={msg.id} content={msg.content} />

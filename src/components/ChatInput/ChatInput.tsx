@@ -4,26 +4,6 @@ import './ChatInput.scss'
 import { useRef, useState } from 'react';
 
 export default function ChatInput() {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [file, setFile] = useState<File | null>(null);
-
-    const handleIconClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = event.target.files?.[0];
-        if (selectedFile) {
-            setFile(selectedFile);
-        }
-    };
-
-    const handleRemoveFile = () => {
-        setFile(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ''; // Сбрасываем значение input
-        }
-    };
 
     return (
         <div className="chat-input">
@@ -82,45 +62,6 @@ export default function ChatInput() {
                         </Button>
                     </ConfigProvider>
                 <div className="container-buttons">
-                    {file && (
-                        <div className="file-preview">
-                            <Button
-                                type="text"
-                                icon={<CloseOutlined />}
-                                onClick={handleRemoveFile}
-                                style={{ color: 'rgba(255,255,255,0.25)' }}
-                                aria-label="Удалить файл"
-                            />
-                            <span style={{maxWidth: "100px", fontSize: "0.9rem"}}>{file.name}</span>
-                        </div>
-                    )}
-                    <div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            style={{ display: 'none' }}
-                        />
-
-                        <label htmlFor="fileInput" style={{ cursor: 'pointer' }}>
-                            <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="icon"
-                                onClick={handleIconClick}
-                            >
-                                <path
-                                    d="M10.1147 4.66661L5.72405 9.05728C5.59671 9.18028 5.49513 9.3274 5.42525 9.49007C5.35537 9.65275 5.31859 9.82771 5.31705 10.0047C5.31551 10.1818 5.34925 10.3574 5.41629 10.5212C5.48333 10.6851 5.58234 10.8339 5.70753 10.9591C5.83272 11.0843 5.98159 11.1833 6.14545 11.2504C6.30931 11.3174 6.48488 11.3512 6.66192 11.3496C6.83896 11.3481 7.01392 11.3113 7.17659 11.2414C7.33926 11.1715 7.48639 11.07 7.60939 10.9426L11.8854 6.55195C12.3711 6.04901 12.6399 5.3754 12.6339 4.67621C12.6278 3.97702 12.3473 3.30819 11.8529 2.81376C11.3585 2.31934 10.6896 2.03889 9.99046 2.03282C9.29127 2.02674 8.61766 2.29552 8.11472 2.78128L3.83805 7.17128C3.08784 7.92149 2.66638 8.93899 2.66638 9.99995C2.66638 11.0609 3.08784 12.0784 3.83805 12.8286C4.58826 13.5788 5.60576 14.0003 6.66672 14.0003C7.72768 14.0003 8.74518 13.5788 9.49539 12.8286L13.6667 8.66661"
-                                    stroke="white"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                />
-                            </svg>
-                        </label>
-                    </div>
 
                     <ConfigProvider theme={{
                         token: {
