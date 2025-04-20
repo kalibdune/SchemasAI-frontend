@@ -1,0 +1,25 @@
+.chat-input {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: auto;
+  background-color: #141414;
+  padding: 8px 4px;
+  border-radius: 10px;
+  min-width: 100%;
+}
+
+.container-click {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px;
+  padding-left: 8px;
+}
+
+.container-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
