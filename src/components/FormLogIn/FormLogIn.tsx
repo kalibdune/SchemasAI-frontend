@@ -1,10 +1,10 @@
 import { Button, Form, Input, type FormProps } from "antd";
 import { useForm } from "antd/es/form/Form";
 import FormStyle from "../FormStyles/FormStyle.tsx";
-import {ApiService} from "../../utils/auth.ts"
+import { ApiService } from "../../utils/auth.ts";
+import { useNavigate } from "react-router-dom";  // Для редиректа
 
 const api = new ApiService();
-
 
 type FieldType = {
     email: string;
@@ -13,11 +13,15 @@ type FieldType = {
 
 export default function FormLogIn() {
     const [form] = useForm<FieldType>();
+    const navigate = useNavigate();  // Хук для редиректа
 
     const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
         try {
             const user = await api.login(values.email, values.password);
             console.log("Вход выполнен:", user);
+
+            // Если вход успешен, переходим на главную страницу
+            navigate("/chat");  // Пример, можно перенаправить на нужную страницу
         } catch (error) {
             console.error("Ошибка входа:", error);
             form.setFields([
@@ -45,13 +49,10 @@ export default function FormLogIn() {
                         name="email"
                         rules={[
                             { required: true, message: "Пожалуйста, введите вашу почту" },
-                            {
-                                type: "email",
-                                message: "Некорректный формат почты"
-                            }
+                            { type: "email", message: "Некорректный формат почты" }
                         ]}
                     >
-                        <Input placeholder="Почта" size="large"/>
+                        <Input placeholder="Почта" size="large" />
                     </Form.Item>
 
                     <Form.Item<FieldType>

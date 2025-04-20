@@ -1,8 +1,9 @@
-import { Button, Form, Input, type FormProps } from "antd";
+import { Button, Form, Input, type FormProps, message } from "antd";
 import { useForm } from "antd/es/form/Form";
 import { ApiService } from "../../utils/auth.ts";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import FormStyle from "../FormStyles/FormStyle.tsx";
+import axios from "axios";
 
 const api = new ApiService();
 
@@ -15,14 +16,30 @@ type FieldType = {
 
 export default function FormSignUp() {
     const [form] = useForm<FieldType>();
+    const navigate = useNavigate(); // хук для редиректа
 
     const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
         const { confirmPassword, ...dataToSubmit } = values;
         try {
             const response = await api.createUser(dataToSubmit);
-            console.log("Пользователь создан:", response);
-        } catch (error) {
-            console.error("Ошибка создания:", error);
+            if (response) {
+                // Если регистрация успешна, код 201, редиректим на главную страницу
+                message.success("Пользователь успешно зарегистрирован!");
+                navigate("/chat"); // Редирект на главную страницу
+            }
+        } catch (error: any) {
+            if (axios.isAxiosError(error)) {
+                if (error.response?.status === 409) {
+                    // Если ошибка с кодом 409, выводим сообщение, что почта существует
+                    message.error("Почта уже существует!");
+                } else {
+                    // Для всех остальных ошибок выводим общий error
+                    message.error("Ошибка регистрации. Попробуйте снова.");
+                }
+            } else {
+                // В случае других ошибок, не связанных с axios
+                message.error("Неизвестная ошибка. Попробуйте снова.");
+            }
         }
     };
 

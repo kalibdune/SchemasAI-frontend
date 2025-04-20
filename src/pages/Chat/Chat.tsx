@@ -1,136 +1,33 @@
 import SideBar from "../../components/SideBar/SideBar.tsx";
 import ChatInput from "../../components/ChatInput/ChatInput.tsx";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import MessageList from "../../components/MessageList/MessageList.tsx";
 import { Message } from "../../types/types.ts";
 import Background from "../../components/Background/Background.tsx";
 
-const mockMessages: Message[] = [
-    {
-        id: "1",
-        content: "Привет, AI!",
-        chat_id: "chat-1",
-        sender_type: "user",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },
-    {
-        id: "2",
-        content: "\n" +
-            "Текст перед первым блоком кода:\n" +
-            "\n" +
-            "```js\n" +
-            "function greet(name) {\n" +
-            "  return `Hello, ${name}!`;\n" +
-            "}\n" +
-            "```\n" +
-            "\n" +
-            "Текст между блоками кода (если нужно):\n" +
-            "\n" +
-            "```python\n" +
-            "def hello_world():\n" +
-            "    print(\"Another code block example\")\n" +
-            "```\n" +
-            "\n" +
-            "Если нужно два блока кода подряд без текста между ними:\n" +
-            "\n" +
-            "```js\n" +
-            "// Первый блок кода\n" +
-            "const sum = (a, b) => a + b;\n" +
-            "```\n" +
-            "\n" +
-            "```python\n" +
-            "# Второй блок кода сразу после первого\n" +
-            "x = 10\n" +
-            "print(x * 2)\n" +
-            "```\n" +
-            "\n" +
-            "Можно также использовать разные языки разметки для блоков кода.\n" +
-            "```",
-        chat_id: "chat-1",
-        sender_type: "ai",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },{
-        id: "2",
-        content: "\n" +
-            "Текст перед первым блоком кода:\n" +
-            "\n" +
-            "```js\n" +
-            "function greet(name) {\n" +
-            "  return `Hello, ${name}!`;\n" +
-            "}\n" +
-            "```\n" +
-            "\n" +
-            "Текст между блоками кода (если нужно):\n" +
-            "\n" +
-            "```python\n" +
-            "def hello_world():\n" +
-            "    print(\"Another code block example\")\n" +
-            "```\n" +
-            "\n" +
-            "Если нужно два блока кода подряд без текста между ними:\n" +
-            "\n" +
-            "```js\n" +
-            "// Первый блок кода\n" +
-            "const sum = (a, b) => a + b;\n" +
-            "```\n" +
-            "\n" +
-            "```python\n" +
-            "# Второй блок кода сразу после первого\n" +
-            "x = 10\n" +
-            "print(x * 2)\n" +
-            "```\n" +
-            "\n" +
-            "Можно также использовать разные языки разметки для блоков кода.\n" +
-            "```",
-        chat_id: "chat-1",
-        sender_type: "ai",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },
-    {
-        id: "2",
-        content: "\n" +
-            "Текст перед первым блоком кода:\n" +
-            "\n" +
-            "```js\n" +
-            "function greet(name) {\n" +
-            "  return `Hello, ${name}!`;\n" +
-            "}\n" +
-            "```\n" +
-            "\n" +
-            "Текст между блоками кода (если нужно):\n" +
-            "\n" +
-            "```python\n" +
-            "def hello_world():\n" +
-            "    print(\"Another code block example\")\n" +
-            "```\n" +
-            "\n" +
-            "Если нужно два блока кода подряд без текста между ними:\n" +
-            "\n" +
-            "```js\n" +
-            "// Первый блок кода\n" +
-            "const sum = (a, b) => a + b;\n" +
-            "```\n" +
-            "\n" +
-            "```python\n" +
-            "# Второй блок кода сразу после первого\n" +
-            "x = 10\n" +
-            "print(x * 2)\n" +
-            "```\n" +
-            "\n" +
-            "Можно также использовать разные языки разметки для блоков кода.\n" +
-            "```",
-        chat_id: "chat-1",
-        sender_type: "ai",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-    },
-];
-
 export default function Chat() {
-    const [messages, setMessages] = useState<Message[]>(mockMessages);
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [searchParams] = useSearchParams();
+    const chatId = searchParams.get("chatId");
+
+    useEffect(() => {
+        async function fetchMessages() {
+            if (!chatId) return;
+
+            try {
+                const response = await fetch(`/api/message/chat/${chatId}?start=last&count=10`);
+                if (!response.ok) throw new Error("Ошибка загрузки сообщений");
+
+                const data: Message[] = await response.json();
+                setMessages(data);
+            } catch (error) {
+                console.error("Ошибка:", error);
+            }
+        }
+
+        fetchMessages();
+    }, [chatId]);
 
     return (
         <div className="flex w-full flex-col items-center justify-center">
