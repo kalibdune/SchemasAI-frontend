@@ -1,41 +1,65 @@
 import './App.css';
 import SignUp from "./pages/SignUp/SignUp.tsx";
-import { BrowserRouter as Router, Routes, Route, Outlet, useNavigate } from "react-router-dom";
+import { Routes, Route, Outlet, useNavigate } from "react-router-dom";
 import LogIn from "./pages/LogIn/LogIn.tsx";
 import Home from "./pages/Home/Home.tsx";
 import Chat from "./pages/Chat/Chat.tsx";
-import Cookies from 'js-cookie';
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ApiService } from "./utils/auth.ts";
 
+// Создаем экземпляр api для использования в useAuthRedirect
 const api = new ApiService();
 
 function useAuthRedirect(requireAuth: boolean = true) {
     const navigate = useNavigate();
+    const [checked, setChecked] = useState(false);
 
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const accessToken = Cookies.get('access_token');
+                const accessToken = localStorage.getItem('access_token');
+                const isAuthenticated = localStorage.getItem('isAuthenticated');
 
-                if (requireAuth && !accessToken) throw new Error("No token");
-                if (!requireAuth && accessToken) throw new Error("Already authenticated");
+                console.log('useAuthRedirect: проверка токена =', !!accessToken,
+                            'isAuthenticated =', !!isAuthenticated);
 
-                if (accessToken) {
-                    await api.getCurrentUser();
-                    if (!requireAuth) navigate('/');
+                if (requireAuth && !accessToken) {
+                    navigate('/login');
+                    return;
                 }
+
+                if (!requireAuth && accessToken) {
+                    // Используем api для проверки валидности токена
+                    try {
+                        await api.getCurrentUser();
+                        navigate('/');
+                        return;
+                    } catch (error) {
+                        console.error('Токен недействителен:', error);
+                        // Очищаем невалидный токен
+                        localStorage.removeItem('access_token');
+                        localStorage.removeItem('refresh_token');
+                        localStorage.removeItem('isAuthenticated');
+                    }
+                }
+
+                setChecked(true);
             } catch (error) {
+                console.error('Ошибка авторизации:', error);
                 if (requireAuth) {
-                    Cookies.remove('access_token');
-                    Cookies.remove('refresh_token');
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    localStorage.removeItem('isAuthenticated');
                     navigate('/login');
                 }
+                setChecked(true);
             }
         };
 
         checkAuth();
     }, [navigate, requireAuth]);
+
+    return checked;
 }
 
 function ProtectedRoute() {
@@ -51,19 +75,17 @@ function AuthRoute() {
 function App() {
     return (
         <div className="flex justify-center items-center h-screen">
-            <Router>
-                <Routes>
-                    <Route element={<AuthRoute />}>
-                        <Route path="/signup" element={<SignUp />} />
-                        <Route path="/login" element={<LogIn />} />
-                    </Route>
+            <Routes>
+                <Route element={<AuthRoute />}>
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/login" element={<LogIn />} />
+                </Route>
 
-                    <Route element={<ProtectedRoute />}>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/chat" element={<Chat />} />
-                    </Route>
-                </Routes>
-            </Router>
+                <Route element={<ProtectedRoute />}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/chat" element={<Chat />} />
+                </Route>
+            </Routes>
         </div>
     );
 }

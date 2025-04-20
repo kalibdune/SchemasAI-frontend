@@ -5,6 +5,10 @@ import { useSearchParams } from "react-router-dom";
 import MessageList from "../../components/MessageList/MessageList.tsx";
 import { Message } from "../../types/types.ts";
 import Background from "../../components/Background/Background.tsx";
+import { ApiService } from "../../utils/auth.ts";
+
+// Создаем экземпляр API сервиса
+const api = new ApiService();
 
 export default function Chat() {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -16,18 +20,28 @@ export default function Chat() {
             if (!chatId) return;
 
             try {
-                const response = await fetch(`/api/message/chat/${chatId}?start=last&count=10`);
-                if (!response.ok) throw new Error("Ошибка загрузки сообщений");
-
-                const data: Message[] = await response.json();
+                console.log('Запрашиваем сообщения для чата:', chatId);
+                const data = await api.getChatMessages(chatId);
+                console.log('Получены сообщения:', data);
                 setMessages(data);
             } catch (error) {
-                console.error("Ошибка:", error);
+                console.error("Ошибка загрузки сообщений:", error);
             }
         }
 
         fetchMessages();
     }, [chatId]);
+
+    const handleSendMessage = async (content: string) => {
+        if (!chatId || !content.trim()) return;
+
+        try {
+            const newMessage = await api.sendMessage(chatId, content);
+            setMessages(prev => [...prev, newMessage]);
+        } catch (error) {
+            console.error("Ошибка при отправке сообщения:", error);
+        }
+    };
 
     return (
         <div className="flex w-full flex-col items-center justify-center">
@@ -39,7 +53,6 @@ export default function Chat() {
                         <path d="M17.0809 14.15C14.2909 12.29 9.74094 12.29 6.93094 14.15C5.66094 15 4.96094 16.15 4.96094 17.38C4.96094 18.61 5.66094 19.75 6.92094 20.59C8.32094 21.53 10.1609 22 12.0009 22C13.8409 22 15.6809 21.53 17.0809 20.59C18.3409 19.74 19.0409 18.6 19.0409 17.36C19.0309 16.13 18.3409 14.99 17.0809 14.15Z" fill="white"/>
                     </svg>
                 </div>
-
             </div>
             <svg width="109" height="38" viewBox="0 0 109 38" fill="none" xmlns="http://www.w3.org/2000/svg" className="fixed bottom-11/12" style={{zIndex: 3 }}>
                 <rect y="7" width="24" height="24" fill="white"/>
@@ -57,7 +70,7 @@ export default function Chat() {
                     <MessageList messages={messages} />
                 </div>
                 <div className="min-w-1/3" style={{paddingBottom:'40px'}}>
-                    <ChatInput />
+                    <ChatInput onSendMessage={handleSendMessage} />
                 </div>
             </div>
         </div>

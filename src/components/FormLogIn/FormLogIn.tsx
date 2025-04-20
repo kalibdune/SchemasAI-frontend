@@ -17,22 +17,17 @@ export default function FormLogIn() {
     const navigate = useNavigate();  // Хук для редиректа
 
     const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
-        try {
-            // 1. Выполняем вход и получаем пользователя
-            const user = await api.login(values.email, values.password);
-            console.log("Вход выполнен:", user);
-
-            navigate("/chat");
-        } catch (error) {
-            console.error("Ошибка входа:", error);
-            form.setFields([
-                {
-                    name: "password",
-                    errors: ["Неверные учетные данные"]
-                }
-            ]);
-        }
-    };
+    try {
+        // 1. Выполняем вход и получаем пользователя
+        const user = await api.login(values.email, values.password);
+        console.log("Вход выполнен:", user);
+        navigate('/');
+    } catch (error) {
+        console.error("Ошибка при входе:", error);
+        // Здесь можно добавить отображение ошибки пользователю
+        // Например, через message.error из antd
+    }
+};
 
     return (
         <div>

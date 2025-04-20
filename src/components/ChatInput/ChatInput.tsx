@@ -3,27 +3,32 @@ import { PlusOutlined, CloseOutlined } from "@ant-design/icons";
 import './ChatInput.scss'
 import { useRef, useState } from 'react';
 
-export default function ChatInput() {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [file, setFile] = useState<File | null>(null);
+interface ChatInputProps {
+    onSendMessage: (message: string) => void;
+}
 
-    const handleIconClick = () => {
-        fileInputRef.current?.click();
-    };
+export default function ChatInput({ onSendMessage }: ChatInputProps) {
+    const [message, setMessage] = useState("");
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = event.target.files?.[0];
-        if (selectedFile) {
-            setFile(selectedFile);
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (message.trim()) {
+            onSendMessage(message);
+            setMessage("");
         }
     };
 
-    const handleRemoveFile = () => {
-        setFile(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ''; // Сбрасываем значение input
-        }
-    };
+    return (
+        <form onSubmit={handleSubmit}>
+            <input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Введите сообщение..."
+            />
+            <button type="submit">Отправить</button>
+        </form>
+    );
+}
 
     return (
         <div className="chat-input">
