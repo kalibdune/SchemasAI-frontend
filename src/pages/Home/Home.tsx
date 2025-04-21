@@ -1,4 +1,4 @@
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 
 export default function Home() {
@@ -17,7 +17,7 @@ export default function Home() {
         //     <Outlet/>
         // </div>
         <>
-            <Link to={'/chat'}>Чат</Link>
+            <Link to={'/signup'}>Регистрация</Link>
         </>
     )
 }
