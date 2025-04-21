@@ -114,7 +114,7 @@ export default function Chat() {
     }, [chatId, user]);
 
     // Обработчик отправки сообщения
-    const handleSendMessage = async (newMessage: { text: string, context?: string }) => {
+    const handleSendMessage = async (newMessage: { text: string }) => {
         if (!chatId || !user) return;
 
         // Создаем временный ID для оптимистичного обновления UI
@@ -125,11 +125,9 @@ export default function Chat() {
             id: tempId,
             content: newMessage.text,
             chat_id: chatId,
-            sender_id: user.id,
             sender_type: 'user',
             created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            context: newMessage.context, // Добавляем поле context
+            updated_at: new Date().toISOString()
         };
 
         // Оптимистично добавляем сообщение в локальное состояние
@@ -142,7 +140,6 @@ export default function Chat() {
                 wsRef.current.sendMessage({
                     content: newMessage.text,
                     sender_type: "user",
-                    context: newMessage.context, // Передаем context через WebSocket
                 });
             } else {
                 console.error('WebSocket не подключен, сообщение не может быть отправлено');
@@ -163,6 +160,7 @@ export default function Chat() {
             );
         }
     };
+
     return (
         <div className="chat-page">
             <div className="chat-container">
