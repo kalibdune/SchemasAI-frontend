@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from 'axios'
-import { VITE_BASE_URL } from './constants'
+import { BASE_URL } from './constants'
 import {
     ChatCreateRequest,
     ChatResponse,
@@ -18,7 +18,7 @@ export class ApiService {
 
     constructor() {
         this.axiosInstance = axios.create({
-            baseURL: VITE_BASE_URL,
+            baseURL: BASE_URL,
             withCredentials: true,
         })
     }

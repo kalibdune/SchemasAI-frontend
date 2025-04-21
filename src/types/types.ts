@@ -5,9 +5,11 @@ export interface Message {
     id: string;
     content: string;
     chat_id: string;
-    sender_type: SenderType;
+    sender_id: string;
+    sender_type: string;
     created_at: string;
     updated_at: string;
+    context?: string; // Добавляем опциональное поле context
 }
 
 export interface Chat {

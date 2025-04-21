@@ -1,2 +1,8 @@
-export const VITE_API_URL = "http://localhost:8000/api/";
-export const VITE_BASE_URL = "http://localhost:8000";
+if (!import.meta.env.VITE_BASE_URL) {
+    throw new Error('Environment variable VITE_API_URL is not defined')
+}
+
+const BASE_URL: string = import.meta.env.VITE_BASE_URL
+
+
+export { BASE_URL }
