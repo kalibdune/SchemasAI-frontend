@@ -39,6 +39,51 @@ export default function Chat() {
         fetchMessages();
     }, [chatId])
 
+    // Обработчик добавления нового сообщения
+    // Interface for new message parameters
+    interface NewMessageParams {
+        text: string;
+    }
+
+    // Handler for sending a new message
+    const handleSendMessage = async (newMessage: NewMessageParams) => {
+        // Create a typed message object from the input
+        const typedMessage: Message = {
+            id: Date.now().toString(),
+            content: newMessage.text,
+            chat_id: chatId || '',
+            sender_type: 'user',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+
+        // Добавляем сообщение в локальный стейт
+        setMessages(prevMessages => [...prevMessages, typedMessage]);
+
+        // Если есть chatId, можно отправить сообщение на сервер
+        if (chatId) {
+            try {
+                // Здесь можно добавить логику отправки сообщения на сервер
+                // Например: await api.sendMessage(chatId, newMessage.text);
+
+                // Опционально: имитируем ответ от бота через 1 секунду
+                setTimeout(() => {
+                    const botResponse: Message = {
+                        id: Date.now().toString(),
+                        content: `Ответ на ваш запрос: "${newMessage.text}"`,
+                        chat_id: chatId || '',
+                        sender_type: 'ai',
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    };
+                    setMessages(prevMessages => [...prevMessages, botResponse]);
+                }, 1000);
+            } catch (error) {
+                console.error('Ошибка при отправке сообщения:', error);
+            }
+        }
+    };
+
     return (
         <div className="flex w-full flex-col items-center justify-center">
             <Background />
@@ -77,7 +122,6 @@ export default function Chat() {
                         </svg>
                     </div>
                 )}
-
             </div>
             <svg width="109" height="38" viewBox="0 0 109 38" fill="none" xmlns="http://www.w3.org/2000/svg" className="fixed bottom-11/12" style={{ zIndex: 3 }}>
                 <rect y="7" width="24" height="24" fill="white" />
@@ -95,7 +139,7 @@ export default function Chat() {
                     <MessageList messages={messages} />
                 </div>
                 <div className="min-w-1/3" style={{ paddingBottom: '40px' }}>
-                    <ChatInput />
+                    <ChatInput onSendMessage={handleSendMessage} />
                 </div>
             </div>
         </div>
