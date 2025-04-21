@@ -1,42 +1,59 @@
 import { useState, useEffect } from "react";
 import Loader from "../Loader/Loader.tsx";
-import "./SideBarHistory.scss"
+import "./SideBarHistory.scss";
+import { ApiService } from "../../utils/auth.ts";
+import { ChatResponse } from "../../types/authTypes";
+import { useNavigate } from "react-router-dom";
 
-
-type ChatHistory = {
-    id: string;
-    name: string;
+type SideBarHistoryProps = {
+    newChat?: ChatResponse | null;
 };
 
-export default function SideBarHistory() {
-    const [chats, setChats] = useState<ChatHistory[]>([]);
-    const [loading, setLoading] = useState<boolean>(false);
+export default function SideBarHistory({ newChat }: SideBarHistoryProps) {
+    const [chats, setChats] = useState<ChatResponse[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const api = new ApiService();
+    const navigate = useNavigate();
 
     useEffect(() => {
-        setLoading(true);
-        fetch("/api/chats")
-            .then(res => res.json())
-            .then((data: ChatHistory[]) => setChats(data))
-            .catch(err => {
-                console.log(err);
-                setLoading(false);
-            });
+        fetchChats();
     }, []);
 
-    const handleDeleteChat = async (chatId: string) => {
+    useEffect(() => {
+        if (newChat && !chats.find(chat => chat.id === newChat.id)) {
+            setChats(prev => [newChat, ...prev]);
+        }
+    }, [newChat]);
+
+    async function fetchChats() {
+        setLoading(true);
+        try {
+            const chatsData = await api.getChats();
+            setChats(chatsData);
+        } catch (error) {
+            console.error("Ошибка при получении списка чатов:", error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const handleDeleteChat = async (chatId: string, event: React.MouseEvent) => {
+        // Предотвращаем всплытие события, чтобы не срабатывал клик по родительскому элементу
+        event.stopPropagation();
         try {
             setDeletingId(chatId);
-            const response = await fetch(`/api/chats/${chatId}`, {
-                method: "DELETE",
-            });
-            if (!response.ok) throw new Error("Failed to delete chat");
+            await api.deleteChat(chatId);
             setChats(prev => prev.filter((c) => c.id !== chatId));
-        } catch (err) {
-            console.error("Could not delete chat", err);
+        } catch (error) {
+            console.error("Ошибка при удалении чата:", error);
         } finally {
             setDeletingId(null);
         }
+    };
+
+    const handleChatClick = (chatId: string) => {
+        navigate(`/chat?chatId=${chatId}`);
     };
 
     return (
@@ -53,8 +70,12 @@ export default function SideBarHistory() {
                         </span>
                     ) : (
                         <div>
-                            {chats.map((chat: ChatHistory) => (
-                                <div key={chat.id}>
+                            {chats.map((chat) => (
+                                <div
+                                    key={chat.id}
+                                    onClick={() => handleChatClick(chat.id)}
+                                    style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px", marginBottom: "4px", borderRadius: "4px", backgroundColor: "rgba(255, 255, 255, 0.05)" }}
+                                >
                                     <span>{chat.name}</span>
                                     {deletingId === chat.id ? (
                                         <Loader />
@@ -65,7 +86,7 @@ export default function SideBarHistory() {
                                             viewBox="0 0 16 16"
                                             fill="none"
                                             xmlns="http://www.w3.org/2000/svg"
-                                            onClick={() => handleDeleteChat(chat.id)}
+                                            onClick={(e) => handleDeleteChat(chat.id, e)}
                                             style={{ cursor: "pointer" }}
                                         >
                                             <path

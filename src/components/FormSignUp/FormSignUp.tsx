@@ -3,7 +3,8 @@ import { useForm } from "antd/es/form/Form";
 import { ApiService } from "../../utils/auth.ts";
 import { Link, useNavigate } from "react-router-dom";
 import FormStyle from "../FormStyles/FormStyle.tsx";
-import axios from "axios";
+import { UserCreateRequest } from "../../types/authTypes.ts";
+import StorageService from "../../utils/storage.ts";
 
 const api = new ApiService();
 
@@ -20,37 +21,32 @@ export default function FormSignUp() {
 
     const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
         const { confirmPassword, ...dataToSubmit } = values;
-        try {
-            // 1. Регистрация пользователя
-            await api.register(dataToSubmit);
-
-            // 2. Автоматический вход после успешной регистрации
-            await api.login(dataToSubmit.email, dataToSubmit.password);
-
-            // 3. Редирект на защищенную страницу
-            message.success("Регистрация прошла успешно!");
-            navigate("/chat");
-        } catch (error: unknown) {
-            if (axios.isAxiosError(error)) {
-                // Обработка ошибок валидации
-                if (error.response?.status === 422) {
-                    const details = error.response.data.detail;
-                    const emailError = details.find((d: any) => d.loc.includes('email'));
-                    if (emailError) {
-                        form.setFields([{
-                            name: 'email',
-                            errors: [emailError.msg]
-                        }]);
-                        return;
-                    }
-                }
-
-                // Общая обработка ошибок
-                message.error(error.response?.data?.detail || "Ошибка регистрации");
-            } else {
-                message.error("Неизвестная ошибка");
-            }
+        const storage = new StorageService()
+        const payload: UserCreateRequest = {
+            "email": dataToSubmit.email,
+            "name": dataToSubmit.name,
+            "password": dataToSubmit.password
         }
+
+        if (values.password !== values.confirmPassword) {
+            message.error("Пароли не совпадают")
+            form.setFields([{
+                name: 'email',
+                errors: ["Пароли не совпадают"]
+            }]);
+            return
+        }
+
+        await api.createUser(payload)
+            .then((user) => {
+                message.success("Регистрация прошла успешно!");
+                storage.setItem("user", user)
+                storage.setItem('isLogged', true)
+                navigate("/chat");
+            })
+            .catch((error) => {
+                console.error(error)
+            })
     };
 
     return (

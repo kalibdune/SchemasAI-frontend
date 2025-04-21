@@ -2,7 +2,7 @@
 export type SenderType = "user" | "ai";
 
 export interface Message {
-    id: string; // UUID
+    id: string;
     content: string;
     chat_id: string;
     sender_type: SenderType;
@@ -25,4 +25,18 @@ export interface User {
     password: string;
     created_at: string;
     updated_at: string;
+}
+
+export interface UserCreateRequest {
+    name: string
+    email: string
+    password: string
+}
+
+export interface UserResponse {
+    name: string
+    email: string
+    id: string
+    created_at: string
+    updated_at: string
 }

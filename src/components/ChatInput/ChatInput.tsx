@@ -52,14 +52,7 @@ export default function ChatInput() {
                             colorTextPlaceholder: "rgba(255,255,255,0.25)",
                             colorBorder: "#424242",
                         }
-
                     }}>
-                        <Button type="dashed">
-                            <div className="flex justify-center content-center gap-2">
-                                <PlusOutlined />
-                                <span>Добавить Cubes</span>
-                            </div>
-                        </Button>
                     </ConfigProvider>
                 <div className="container-buttons">
 

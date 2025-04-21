@@ -2,7 +2,9 @@ import { Button, Form, Input, type FormProps } from "antd";
 import { useForm } from "antd/es/form/Form";
 import FormStyle from "../FormStyles/FormStyle.tsx";
 import { ApiService } from "../../utils/auth.ts";
-import {Link, useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import StorageService from "../../utils/storage.ts";
+
 
 
 const api = new ApiService();
@@ -14,23 +16,29 @@ type FieldType = {
 
 export default function FormLogIn() {
     const [form] = useForm<FieldType>();
-    const navigate = useNavigate();  // Хук для редиректа
+    const navigate = useNavigate();
 
     const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+        const storage = new StorageService()
         try {
-            // 1. Выполняем вход и получаем пользователя
-            const user = await api.login(values.email, values.password);
-            console.log("Вход выполнен:", user);
-
-            navigate("/chat");
+            await api.login(values.email, values.password).
+                then((user) => {
+                    storage.setItem("user", user)
+                    storage.setItem('isLogged', true)
+                    navigate("/chat");
+                    console.log("Вход выполнен:", user);
+                }).
+                catch((error) => {
+                    form.setFields([
+                        {
+                            name: "password",
+                            errors: ["Неверные учетные данные"]
+                        }
+                    ]);
+                    console.error("Ошибка входа:", error);
+                });
         } catch (error) {
-            console.error("Ошибка входа:", error);
-            form.setFields([
-                {
-                    name: "password",
-                    errors: ["Неверные учетные данные"]
-                }
-            ]);
+            console.error("Unexpected error:", error);
         }
     };
 

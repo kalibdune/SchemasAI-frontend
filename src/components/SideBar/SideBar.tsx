@@ -2,10 +2,14 @@ import "./SideBar.scss";
 import { useState } from "react";
 import SideBarHistory from "../SideBarHistory/SideBarHistory.tsx";
 import { useNavigate } from "react-router-dom";
+import { ApiService } from "../../utils/auth.ts";
+import { ChatResponse } from "../../types/authTypes";
 
 export default function SideBar() {
     const [active, setActive] = useState<boolean>(false);
+    const [newChat, setNewChat] = useState<ChatResponse | null>(null);
     const navigate = useNavigate();
+    const api = new ApiService();
 
     function toggleActive() {
         setActive(!active);
@@ -13,24 +17,14 @@ export default function SideBar() {
 
     async function handleNewChat() {
         try {
-            const response = await fetch("/api/chat/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ name: "Новый чат" })
-            });
-
-            if (!response.ok) {
-                throw new Error("Ошибка при создании чата");
-            }
-
-            const chatId = await response.json(); // потому что ответ — строка
-            navigate(`/chat?chatId=${chatId}`);
+            const chatResponse = await api.createChat({ name: "Новый чат" });
+            setNewChat(chatResponse);
+            navigate(`/chat?chatId=${chatResponse.id}`);
         } catch (error) {
             console.error("Ошибка создания чата:", error);
         }
     }
+
     return (
         <div className={active ? "active-sidebar" : "inactive"}>
             <div className="sidebar-item-top-container">
@@ -67,7 +61,7 @@ export default function SideBar() {
                     {active && (<span>Поиск</span>)}
                 </div>
             </div>
-            {active && <SideBarHistory/>}
+            {active && <SideBarHistory newChat={newChat} />}
             <div>
                 <div className={`sidebar-item ${active ? "active-icon" : ""}`} onClick={toggleActive}>
                     <svg
@@ -90,5 +84,5 @@ export default function SideBar() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

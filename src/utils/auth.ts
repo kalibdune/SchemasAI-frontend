@@ -1,174 +1,135 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
-import { VITE_BASE_URL } from './constants';
-import Cookies from 'js-cookie';
-import { UserResponse, UserCreateRequest } from "../types/authTypes.ts";
+import axios, { AxiosInstance } from 'axios'
+import { VITE_BASE_URL } from './constants'
+import {
+    ChatCreateRequest,
+    ChatResponse,
+    ChatUpdateRequest,
+    GetMessagesParams,
+    MessageCreateRequest,
+    MessageResponse,
+    MessageUpdateRequest,
+    UserCreateRequest,
+    UserResponse,
+    UUID,
+} from '../types/authTypes'
 
 export class ApiService {
-    private axiosInstance: AxiosInstance;
+    private axiosInstance: AxiosInstance
 
     constructor() {
         this.axiosInstance = axios.create({
             baseURL: VITE_BASE_URL,
             withCredentials: true,
-        });
+        })
+    }
 
-        this.axiosInstance.interceptors.request.use((config) => {
-            const token = Cookies.get('access_token');
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
-            return config;
-        });
-
-        this.axiosInstance.interceptors.response.use(
-            response => response,
-            async error => {
-                const originalRequest = error.config;
-                if (error.response?.status === 401 && !originalRequest._retry) {
-                    originalRequest._retry = true;
+    private async requestToAPI<T>(
+        endpoint: string,
+        method: string = 'GET',
+        data?: any
+    ): Promise<T> {
+        const response = await this.axiosInstance.request<T>({
+            url: endpoint,
+            method,
+            data,
+        })
+        return response.data
+    }
+    private async request<T>(
+        endpoint: string,
+        method: string = 'GET',
+        data?: any
+    ): Promise<T> {
+        console.log("request")
+        try {
+            return await this.requestToAPI<T>(endpoint, method, data)
+        } catch (error: unknown) {
+            console.log("error caught in request")
+            if (axios.isAxiosError(error)) {
+                console.error("axios error", error.response?.status, error.message)
+                if (error.response?.status === 401) {
                     try {
-                        const newToken = await this.refreshToken();
-                        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                        return this.axiosInstance(originalRequest);
+                        await this.requestToAPI<void>('/api/token/refresh/', 'POST')
+                        console.info("refresh endpoint done")
+                        return await this.requestToAPI<T>(endpoint, method, data)
                     } catch (refreshError) {
-                        this.handleAuthError();
-                        return Promise.reject(refreshError);
+                        console.error("refresh token error", refreshError)
+                        throw new Error('Failed to refresh token')
                     }
                 }
-                return Promise.reject(error);
+                throw new Error(error.message)
             }
-        );
-    }
-
-    private handleAuthError() {
-        Cookies.remove('access_token');
-        Cookies.remove('refresh_token');
-        window.location.href = '/login';
-    }
-
-    private async refreshToken(): Promise<string> {
-        try {
-            const refreshToken = Cookies.get('refresh_token');
-            if (!refreshToken) throw new Error('No refresh token');
-
-            // Исправляем запрос согласно спецификации API
-            const formData = new URLSearchParams();
-            formData.append('refresh_token', refreshToken);
-
-            const response = await axios.post<string>(
-                `${VITE_BASE_URL}/api/token/refresh/`,
-                formData,
-                { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-            );
-
-            const newAccessToken = response.data;
-            Cookies.set('access_token', newAccessToken, {
-                expires: 1,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict'
-            });
-
-            return newAccessToken;
-        } catch (error) {
-            this.handleAuthError();
-            throw error;
+            console.error("unexpected error", error)
+            throw new Error('An unexpected error occurred')
         }
     }
 
-    private async request<T>(method: string, url: string, data?: any): Promise<T> {
-        try {
-            const response = await this.axiosInstance.request<T>({ method, url, data });
-            return response.data;
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                const axiosError = error as AxiosError;
-                throw new Error(
-                    (axiosError.response?.data as any)?.detail ||
-                    axiosError.message ||
-                    'Unknown error'
-                );
-            }
-            throw new Error('Unknown error');
-        }
+    async createUser(payload: UserCreateRequest): Promise<UserResponse> {
+        return this.request<UserResponse>('/api/user/', 'POST', payload)
     }
 
-    // Auth methods
-    async login(email: string, password: string) {
-        const formData = new URLSearchParams();
-        formData.append('username', email);
-        formData.append('password', password);
-        formData.append('grant_type', 'password');
-
-        const response = await axios.post<{
-            access_token: string,
-            refresh_token: string,
-            user: UserResponse
-        }>(`${VITE_BASE_URL}/api/token/`, formData, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        });
-
-        // Сохраняем токены из тела ответа
-        const { access_token, refresh_token } = response.data;
-
-        Cookies.set('access_token', access_token, {
-            expires: 1,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
-        });
-
-        Cookies.set('refresh_token', refresh_token, {
-            expires: 7,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
-        });
-
-        return response.data.user;
+    async getUserById(id: string): Promise<UserResponse> {
+        return this.request<UserResponse>(`/api/user/${id}/`, 'GET')
     }
 
-    async register(userData: UserCreateRequest): Promise<UserResponse> {
-        return this.request<UserResponse>('POST', '/api/user/', userData);
+    async login(email: string, password: string): Promise<UserResponse> {
+        const payload = new URLSearchParams()
+        payload.append('username', email)
+        payload.append('password', password)
+        payload.append('grant_type', 'password')
+
+        return this.request<UserResponse>('/api/token/', 'POST', payload)
     }
 
-    async getCurrentUser(): Promise<UserResponse> {
-        const userId = await this.getUserIdFromToken();
-        return this.request<UserResponse>('GET', `/api/user/${userId}/`);
+    async refreshToken(): Promise<void> {
+        return this.request<void>('/api/token/refresh/', 'POST')
     }
 
-    async updateUser(userData: Partial<UserCreateRequest>): Promise<UserResponse> {
-        const userId = await this.getUserIdFromToken();
-        return this.request<UserResponse>('PATCH', `/api/user/${userId}/`, userData);
+    async revokeTokens(): Promise<void> {
+        return this.request<void>('/api/token/revoke/', 'DELETE')
     }
 
     async logout(): Promise<void> {
-        try {
-            await this.request('DELETE', '/api/token/logout/');
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
-            Cookies.remove('access_token');
-            Cookies.remove('refresh_token');
-            window.location.href = '/login';
-        }
+        return this.request<void>('/api/token/logout/', 'DELETE')
+    }
+    async createChat(payload: ChatCreateRequest): Promise<ChatResponse> {
+        return this.request<ChatResponse>('/api/chat/', 'POST', payload)
     }
 
-    private getUserIdFromToken(): string {
-        const token = Cookies.get('access_token');
-        if (!token) throw new Error('No access token');
-
-        try {
-            const base64Url = token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const payload = JSON.parse(atob(base64));
-
-            if (!payload.sub && !payload.user_id) {
-                throw new Error('Invalid token payload');
-            }
-
-            return payload.sub || payload.user_id;
-        } catch (e) {
-            throw new Error('Invalid token format');
-        }
+    async getChats(): Promise<ChatResponse[]> {
+        return this.request<ChatResponse[]>('/api/chat/chats/', 'GET')
     }
+
+    async getChatById(id: UUID): Promise<ChatResponse> {
+        return this.request<ChatResponse>(`/api/chat/${id}/`, 'GET')
+    }
+
+    async updateChat(id: UUID, payload: ChatUpdateRequest): Promise<ChatResponse> {
+        return this.request<ChatResponse>(`/api/chat/${id}/`, 'PATCH', payload)
+    }
+
+    async deleteChat(id: UUID): Promise<void> {
+        return this.request<void>(`/api/chat/${id}/`, 'DELETE')
+    }
+
+    async createMessage(chatId: UUID, payload: MessageCreateRequest): Promise<MessageResponse> {
+        return this.request<MessageResponse>(`/api/message/chat/${chatId}`, 'POST', payload)
+    }
+
+    async getMessagesByChatId(chatId: UUID, params: GetMessagesParams): Promise<MessageResponse[]> {
+        return this.request<MessageResponse[]>(`/api/message/chat/${chatId}?start=${params.start}&count=${params.count}`, 'GET')
+    }
+
+    async getMessageById(id: UUID): Promise<MessageResponse> {
+        return this.request<MessageResponse>(`/api/message/${id}`, 'GET')
+    }
+
+    async updateMessage(id: UUID, payload: MessageUpdateRequest): Promise<MessageResponse> {
+        return this.request<MessageResponse>(`/api/message/${id}`, 'PATCH', payload)
+    }
+
+    async deleteMessage(id: UUID): Promise<void> {
+        return this.request<void>(`/api/message/${id}`, 'DELETE')
+    }
+
 }
