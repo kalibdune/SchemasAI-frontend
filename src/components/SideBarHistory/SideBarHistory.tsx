@@ -69,12 +69,12 @@ export default function SideBarHistory({ newChat }: SideBarHistoryProps) {
                             Нет чатов
                         </span>
                     ) : (
-                        <div>
+                        <div className="sidebar-history">
                             {chats.map((chat) => (
                                 <div
                                     key={chat.id}
                                     onClick={() => handleChatClick(chat.id)}
-                                    style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px", marginBottom: "4px", borderRadius: "4px", backgroundColor: "rgba(255, 255, 255, 0.05)" }}
+                                    className="sidebar-history-item"
                                 >
                                     <span>{chat.name}</span>
                                     {deletingId === chat.id ? (

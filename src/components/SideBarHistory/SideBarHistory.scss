@@ -2,7 +2,13 @@
   display: flex;
   flex-direction: column;
   justify-content: start;
-  height: 75vh;
+  max-height: 65vh;
+  overflow-y: auto;
+  outline: none;
+}
+
+.sidebar-history::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar-history-item {
@@ -10,9 +16,21 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px;
+  cursor: pointer;
+  margin-bottom: 4px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-history-item:hover {
   background-color: #1F1F1F;
   border-radius: 5px;
+}
+.sidebar-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-history::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
 }

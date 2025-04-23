@@ -5,4 +5,19 @@ body {
   margin: 0;
   background-image: url("./assets/bg1.png");
   width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+}
+
+*:hover {
+  border-radius: 5px;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
 }
